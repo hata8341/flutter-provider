@@ -1,62 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-void main() => runApp(const App());
+void main() {
+  runApp(ProviderScope(child: MyApp()));
+}
 
-class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: _HomePage(),
+      home: ProviderPage(),
     );
   }
 }
 
-class _HomePage extends StatelessWidget {
-  const _HomePage({Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return const _Inherited(
-      message: '🐶',
-      child: Scaffold(
-        body: Center(
-          child: _Message(),
-        ),
-      ),
-    );
-  }
-}
+final counterProvider = StateProvider<int>((ref) => 0);
 
-class _Message extends StatelessWidget {
-  const _Message({Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      'Message: ${_Inherited.of(context, listen: false).message}',
-      style: const TextStyle(fontSize: 96),
-    );
-  }
-}
+final doubleCountProvider = Provider<int>((ref) {
+  final count = ref.watch(counterProvider);
+  return count * 2;
+});
 
-class _Inherited extends InheritedWidget {
-  const _Inherited({
-    Key? key,
-    required this.message,
-    required Widget child,
-  }) : super(key: key, child: child);
+class ProviderPage extends ConsumerWidget {
+  const ProviderPage({Key? key}) : super(key: key);
 
-  final String message;
-
-  static _Inherited of(
-    BuildContext context, {
-    required bool listen,
-  }) {
-    return listen
-        ? context.dependOnInheritedWidgetOfExactType<_Inherited>()
-        : context.getElementForInheritedWidgetOfExactType<_Inherited>().widget
-            as _Inherited;
-  }
+  static const String title = 'ProviderPage';
+  static const String routeName = 'provider-page';
 
   @override
-  bool updateShouldNotify(_Inherited old) => false;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final counterController = ref.watch(counterProvider.notifier);
+    final count = ref.watch(doubleCountProvider);
+
+    return Scaffold(
+        appBar: AppBar(title: const Text(title)),
+        body: ElevatedButton(
+          onPressed: () => counterController.update((state) => state++),
+          child: Text('Increase Count: $count'),
+        ));
+  }
 }
