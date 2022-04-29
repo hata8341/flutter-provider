@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_provider/models/cart.dart';
+import 'package:flutter_provider/models/catalog.dart';
+import 'package:flutter_provider/screens/cart.dart';
+import 'package:flutter_provider/screens/catalog.dart';
+import 'package:flutter_provider/screens/login.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(ChangeNotifierProvider(
-    create: (context) => Counter(),
-    child: const MyApp(),
-  ));
-}
-
-class Counter with ChangeNotifier {
-  int value = 0;
-
-  void increment() {
-    value++;
-    notifyListeners();
-  }
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -22,65 +15,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Consumer<Counter>(
-              builder: (context, counter, child) {
-                return Text(
-                  '${counter.value}',
-                  style: Theme.of(context).textTheme.headline4,
-                );
-              },
-            ),
-          ],
+    return MultiProvider(
+      providers: [
+        Provider<CatalogModel>(create: (context) => CatalogModel()),
+        ChangeNotifierProxyProvider<CatalogModel, CartModel>(
+          create: (context) => CartModel(),
+          update: (context, catalog, cart) {
+            if (cart == null) throw ArgumentError.notNull('cart');
+            cart.catalog = catalog;
+            return cart;
+          },
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          var counter = context.read<Counter>();
-          counter.increment();
+      ],
+      child: MaterialApp(
+        title: 'Provider Demo',
+        theme: ThemeData.light(),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const MyLogin(),
+          '/catalog': (context) => const MyCatalog(),
+          '/cart': (context) => const MyCart(),
         },
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
