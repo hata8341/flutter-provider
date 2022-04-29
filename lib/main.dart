@@ -1,42 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_provider/models/cart.dart';
-import 'package:flutter_provider/models/catalog.dart';
-import 'package:flutter_provider/screens/cart.dart';
-import 'package:flutter_provider/screens/catalog.dart';
-import 'package:flutter_provider/screens/login.dart';
-import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const App());
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
+class App extends StatelessWidget {
+  const App({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<CatalogModel>(create: (context) => CatalogModel()),
-        ChangeNotifierProxyProvider<CatalogModel, CartModel>(
-          create: (context) => CartModel(),
-          update: (context, catalog, cart) {
-            if (cart == null) throw ArgumentError.notNull('cart');
-            cart.catalog = catalog;
-            return cart;
-          },
+    return const MaterialApp(
+      home: _HomePage(),
+    );
+  }
+}
+
+class _HomePage extends StatelessWidget {
+  const _HomePage({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return const _Inherited(
+      message: '🐶',
+      child: Scaffold(
+        body: Center(
+          child: _Message(),
         ),
-      ],
-      child: MaterialApp(
-        title: 'Provider Demo',
-        theme: ThemeData.light(),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const MyLogin(),
-          '/catalog': (context) => const MyCatalog(),
-          '/cart': (context) => const MyCart(),
-        },
       ),
     );
   }
+}
+
+class _Message extends StatelessWidget {
+  const _Message({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'Message: ${_Inherited.of(context, listen: false).message}',
+      style: const TextStyle(fontSize: 96),
+    );
+  }
+}
+
+class _Inherited extends InheritedWidget {
+  const _Inherited({
+    Key? key,
+    required this.message,
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  final String message;
+
+  static _Inherited of(
+    BuildContext context, {
+    required bool listen,
+  }) {
+    return listen
+        ? context.dependOnInheritedWidgetOfExactType<_Inherited>()
+        : context.getElementForInheritedWidgetOfExactType<_Inherited>().widget
+            as _Inherited;
+  }
+
+  @override
+  bool updateShouldNotify(_Inherited old) => false;
 }
