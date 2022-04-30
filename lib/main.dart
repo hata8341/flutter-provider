@@ -1,45 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_provider/entities/todo.dart';
+import 'package:flutter_provider/todo_state_notifier_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+final todoListNotifierProvider =
+    StateNotifierProvider<TodoListNotifier, List<Todo>>(
+  (ref) => TodoListNotifier(),
+);
+
 void main() {
-  runApp(ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: ProviderPage(),
+    return MaterialApp(
+      title: 'todo',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('todoList'),
+        ),
+        body: const TodoPage(),
+      ),
     );
   }
 }
 
-final counterProvider = StateProvider((ref) => 0);
-
-final doubleCountProvider = Provider((ref) {
-  final count = ref.watch(counterProvider);
-  return count * 2;
-});
-
-class ProviderPage extends ConsumerWidget {
-  const ProviderPage({Key? key}) : super(key: key);
-
-  static const String title = 'ProviderPage';
-  // static const String routeName = 'provider-page';
+class TodoPage extends ConsumerWidget {
+  const TodoPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final counter = ref.read(counterProvider.notifier);
-    final count = ref.watch(doubleCountProvider);
-
-    return Scaffold(
-        appBar: AppBar(title: const Text(title)),
-        body: ElevatedButton(
-          onPressed: () {
-            print(counter.state);
-            counter.update((state) => state + 1);
-          },
-          child: Text('Increase Count: $count'),
-        ));
+    final todoList = ref.watch(todoListNotifierProvider);
+    final todoListController = ref.read(todoListNotifierProvider.notifier);
+    return ListView.builder(
+      itemCount: todoList.length,
+      itemBuilder: (context, index) {
+        final todo = todoList[index];
+        return ListTile(
+            title: Text(todo.title),
+            leading: Icon(todo.completed
+                ? Icons.check_box
+                : Icons.check_box_outline_blank),
+            trailing: TextButton(
+              onPressed: () => todoListController.remove(todo.id),
+              child: const Text('Delete'),
+            ),
+            onTap: () => todoListController.toggle(todo.id));
+      },
+    );
   }
 }
