@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_provider/entities/todo.dart';
-import 'package:flutter_provider/todo_state_notifier_provider.dart';
+import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-final todoListNotifierProvider =
-    StateNotifierProvider<TodoListNotifier, List<Todo>>(
-  (ref) => TodoListNotifier(),
-);
+final counterProvider = StateProvider<int>((ref) => 0);
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -18,40 +16,60 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'todo',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('todoList'),
-        ),
-        body: const TodoPage(),
+      title: 'listen',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: const ListenProviderPage(),
     );
   }
 }
 
-class TodoPage extends ConsumerWidget {
-  const TodoPage({Key? key}) : super(key: key);
-
+class ListenProviderPage extends ConsumerWidget {
+  const ListenProviderPage({Key? key}) : super(key: key);
+  static String title = 'listenProvider';
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final todoList = ref.watch(todoListNotifierProvider);
-    final todoListController = ref.read(todoListNotifierProvider.notifier);
-    return ListView.builder(
-      itemCount: todoList.length,
-      itemBuilder: (context, index) {
-        final todo = todoList[index];
-        return ListTile(
-            title: Text(todo.title),
-            leading: Icon(todo.completed
-                ? Icons.check_box
-                : Icons.check_box_outline_blank),
-            trailing: TextButton(
-              onPressed: () => todoListController.remove(todo.id),
-              child: const Text('Delete'),
-            ),
-            onTap: () => todoListController.toggle(todo.id));
+    ref.listen<int>(
+      counterProvider,
+      (previous, next) {
+        if (next.isEven) return;
+        showDialog(
+          context: context,
+          builder: (context) {
+            return const AlertDialog(
+              title: Text('今の値は,奇数です'),
+            );
+          },
+        );
       },
+      onError: (error, stackTrace) => debugPrint('$error'),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: SafeArea(
+        child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Text(
+                  'Count:${ref.watch(counterProvider)}',
+                  style: Theme.of(context).textTheme.headline2,
+                ),
+                const Gap(32),
+                ElevatedButton(
+                  onPressed: () {
+                    ref
+                        .read(counterProvider.notifier)
+                        .update((state) => state + 1);
+                  },
+                  child: const Text('incremment'),
+                ),
+              ],
+            )),
+      ),
     );
   }
 }
