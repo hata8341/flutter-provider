@@ -14,9 +14,9 @@ class MyApp extends StatelessWidget {
   }
 }
 
-final counterProvider = StateProvider<int>((ref) => 0);
+final counterProvider = StateProvider((ref) => 0);
 
-final doubleCountProvider = Provider<int>((ref) {
+final doubleCountProvider = Provider((ref) {
   final count = ref.watch(counterProvider);
   return count * 2;
 });
@@ -25,17 +25,20 @@ class ProviderPage extends ConsumerWidget {
   const ProviderPage({Key? key}) : super(key: key);
 
   static const String title = 'ProviderPage';
-  static const String routeName = 'provider-page';
+  // static const String routeName = 'provider-page';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final counterController = ref.watch(counterProvider.notifier);
+    final counter = ref.read(counterProvider.notifier);
     final count = ref.watch(doubleCountProvider);
 
     return Scaffold(
         appBar: AppBar(title: const Text(title)),
         body: ElevatedButton(
-          onPressed: () => counterController.update((state) => state++),
+          onPressed: () {
+            print(counter.state);
+            counter.update((state) => state + 1);
+          },
           child: Text('Increase Count: $count'),
         ));
   }
