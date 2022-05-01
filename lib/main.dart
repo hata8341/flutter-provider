@@ -1,74 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
+import 'package:flutter_provider/controller/home_page_state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-final counterProvider = StateProvider<int>((ref) => 0);
-
-void main() {
-  runApp(const ProviderScope(
-    child: MyApp(),
-  ));
-}
+void main() => runApp(
+      ProviderScope(
+        child: MyApp(),
+      ),
+    );
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'listen',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const ListenProviderPage(),
+    return const MaterialApp(
+      title: 'Material App',
+      home: HomePage(),
     );
   }
 }
 
-class ListenProviderPage extends ConsumerWidget {
-  const ListenProviderPage({Key? key}) : super(key: key);
-  static String title = 'listenProvider';
+class HomePage extends ConsumerWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<int>(
-      counterProvider,
-      (previous, next) {
-        if (next.isEven) return;
-        showDialog(
-          context: context,
-          builder: (context) {
-            return const AlertDialog(
-              title: Text('今の値は,奇数です'),
-            );
-          },
-        );
-      },
-      onError: (error, stackTrace) => debugPrint('$error'),
-    );
+    final pageState = ref.watch(homePageNotifierProvider);
+    final pageNotifier = ref.read(homePageNotifierProvider.notifier);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
+      floatingActionButton: FloatingActionButton(
+        onPressed: pageNotifier.resetAllCount,
+        child: const Icon(Icons.exposure_zero),
       ),
-      body: SafeArea(
-        child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Text(
-                  'Count:${ref.watch(counterProvider)}',
-                  style: Theme.of(context).textTheme.headline2,
-                ),
-                const Gap(32),
-                ElevatedButton(
-                  onPressed: () {
-                    ref
-                        .read(counterProvider.notifier)
-                        .update((state) => state + 1);
-                  },
-                  child: const Text('incremment'),
-                ),
-              ],
-            )),
+      body: ListView(
+        children: [
+          ListTile(
+            title: Text('Main count: ${pageState.mainCount}'),
+            onTap: pageNotifier.increaseMainCount,
+          ),
+          ListTile(
+            title: Text('Sub count: ${pageState.subCount}'),
+            onTap: pageNotifier.increaseSubCount,
+          ),
+          ListTile(
+            title: Text('Maun Count: ${pageState.mainCount}'),
+            onTap: pageNotifier.decreaseMainCount,
+          ),
+          ListTile(
+            title: Text('Sub count: ${pageState.subCount}'),
+            onTap: pageNotifier.decreaseSubCount,
+          ),
+        ],
       ),
     );
   }
